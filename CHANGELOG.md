@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] - 2025-12-27
+
+### Changed
+- 릴리스 프로세스 개선 (빌드 → 태그 순서 변경, 인스톨러 테스트 단계 추가)
+- 인스톨러 PATH 등록 시 WM_SETTINGCHANGE 브로드캐스트 추가 (즉시 반영)
+
 ## [0.1.1] - 2025-12-27
 
 ### Changed
