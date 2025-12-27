@@ -39,8 +39,16 @@ class Program
 
     static string GetIniPath()
     {
-        string exePath = AppContext.BaseDirectory;
-        return Path.Combine(exePath, "NoljiMa.ini");
+        string appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        string noljiMaFolder = Path.Combine(appDataPath, "NoljiMa");
+
+        // 폴더가 없으면 생성
+        if (!Directory.Exists(noljiMaFolder))
+        {
+            Directory.CreateDirectory(noljiMaFolder);
+        }
+
+        return Path.Combine(noljiMaFolder, "NoljiMa.ini");
     }
 
     static (string? BotToken, string? ChatId) LoadConfig(string iniPath)
@@ -96,16 +104,18 @@ class Program
         }
     }
 
-    static void SaveConfig(string iniPath, string botToken, string chatId)
+    static bool SaveConfig(string iniPath, string botToken, string chatId)
     {
         try
         {
             var content = $"[Telegram]\nBotToken={botToken}\nChatId={chatId}\n";
             File.WriteAllText(iniPath, content, Encoding.UTF8);
+            return true;
         }
         catch (Exception ex)
         {
             Console.WriteLine($"설정 파일 저장 실패: {ex.Message}");
+            return false;
         }
     }
 
@@ -189,15 +199,20 @@ class Program
 
         bool success = SendTelegramMessage(botToken, chatId, "NoljiMa 설정 완료!", out string error);
 
-        if (success)
-        {
-            SaveConfig(iniPath, botToken, chatId);
-            Console.WriteLine("설정 완료! 설정 파일이 저장되었습니다.");
-        }
-        else
+        if (!success)
         {
             Console.WriteLine($"설정 실패: {error}");
             Console.WriteLine("설정 파일이 저장되지 않았습니다.");
+            return;
         }
+
+        bool saved = SaveConfig(iniPath, botToken, chatId);
+        if (!saved)
+        {
+            Console.WriteLine("설정 파일 저장에 실패했습니다. 프로그램을 종료합니다.");
+            return;
+        }
+
+        Console.WriteLine("설정 완료! 설정 파일이 저장되었습니다.");
     }
 }

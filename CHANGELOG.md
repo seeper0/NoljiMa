@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.4] - 2025-12-28
+
+### Fixed
+- 설정 파일 저장 실패 시 테스트 메시지가 전송되는 문제 수정
+- 설정 파일 저장 실패 시 프로그램이 정상 종료되도록 개선
+
+### Changed
+- 설정 파일 위치를 사용자 폴더(`%APPDATA%\NoljiMa\`)로 변경하여 권한 문제 해결
+- Program Files 설치 시에도 관리자 권한 없이 설정 저장 가능
+
 ## [0.1.3] - 2025-12-28
 
 ### Changed
