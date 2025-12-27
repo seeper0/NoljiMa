@@ -148,7 +148,7 @@ NoljiMa "테스트 메시지"
 dotnet publish -c Release -r win-x64 --self-contained false -o ./publish
 
 # 압축 (PowerShell)
-Compress-Archive -Path ./publish/* -DestinationPath NoljiMa-v1.0.0-portable.zip
+Compress-Archive -Path ./publish/* -DestinationPath NoljiMa-v0.1.0-portable.zip
 ```
 
 **특징:**
@@ -162,7 +162,7 @@ Compress-Archive -Path ./publish/* -DestinationPath NoljiMa-v1.0.0-portable.zip
 dotnet publish -c Release -r win-x64 --self-contained true -o ./publish
 
 # 압축 (PowerShell)
-Compress-Archive -Path ./publish/* -DestinationPath NoljiMa-v1.0.0-standalone.zip
+Compress-Archive -Path ./publish/* -DestinationPath NoljiMa-v0.1.0-standalone.zip
 ```
 
 **특징:**
@@ -174,7 +174,7 @@ Compress-Archive -Path ./publish/* -DestinationPath NoljiMa-v1.0.0-standalone.zi
 
 - **포터블**: `NoljiMa-v{버전}-portable.zip`
 - **독립형**: `NoljiMa-v{버전}-standalone.zip`
-- **예시**: `NoljiMa-v1.0.0-portable.zip`
+- **예시**: `NoljiMa-v0.1.0-portable.zip`
 
 ### 릴리스 체크리스트
 
@@ -195,7 +195,7 @@ Compress-Archive -Path ./publish/* -DestinationPath NoljiMa-v1.0.0-standalone.zi
 
 4. 압축 및 배포
    ```bash
-   Compress-Archive -Path ./publish/* -DestinationPath NoljiMa-v1.0.0-portable.zip
+   Compress-Archive -Path ./publish/* -DestinationPath NoljiMa-v0.1.0-portable.zip
    ```
 
 5. Git 정리
@@ -204,7 +204,7 @@ Compress-Archive -Path ./publish/* -DestinationPath NoljiMa-v1.0.0-standalone.zi
    find . -name "nul" -type f -delete 2>/dev/null
    git status
    git add .
-   git commit -m "release: v1.0.0"
-   git tag v1.0.0
+   git commit -m "release: v0.1.0"
+   git tag v0.1.0
    git push origin main --tags
    ```

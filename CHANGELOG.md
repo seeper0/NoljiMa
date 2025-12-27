@@ -5,13 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.0] - 2025-12-27
 
-### Planned
-- Telegram Bot API 연동
-- INI 파일 설정 관리
-- 초기 설정 모드
-- 명령줄 인자 처리
+### Added
+- Telegram Bot API 연동 (HttpClient 사용)
+- INI 파일 설정 관리 (직접 파싱)
+- 초기 설정 모드 (BotToken, ChatId 입력 후 테스트 전송)
+- 명령줄 인자 처리 (메시지 전송)
+- 에러 처리 (네트워크, 토큰, ChatId 검증)
+- 단일 파일 구현 (Program.cs, 203줄)
+
+### Technical
+- .NET 8.0 Console App
+- 외부 의존성 없음 (System.Text.Json만 사용)
+- 프레임워크 종속 배포 (~178KB)
 
 ---
 
