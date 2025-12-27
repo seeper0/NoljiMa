@@ -52,6 +52,20 @@ Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Code]
+// 환경 변수 변경 브로드캐스트 상수
+const
+  HWND_BROADCAST = $ffff;
+  WM_SETTINGCHANGE = $001A;
+
+// 환경 변수 변경을 시스템에 알림
+procedure RefreshEnvironment;
+var
+  S: string;
+begin
+  S := 'Environment';
+  SendBroadcastNotifyMessage(HWND_BROADCAST, WM_SETTINGCHANGE, 0, CastStringToInteger(S));
+end;
+
 // .NET 8 Runtime 체크 및 설치 안내
 function IsDotNetInstalled(): Boolean;
 var
@@ -102,12 +116,14 @@ begin
 
           Path := Path + AppDir;
           RegWriteStringValue(HKEY_CURRENT_USER, 'Environment', 'Path', Path);
+          RefreshEnvironment;  // 시스템에 환경 변수 변경 알림
         end;
       end
       else
       begin
         // PATH가 없으면 새로 생성
         RegWriteStringValue(HKEY_CURRENT_USER, 'Environment', 'Path', AppDir);
+        RefreshEnvironment;  // 시스템에 환경 변수 변경 알림
       end;
     end;
   end;
@@ -118,10 +134,12 @@ var
   Path: string;
   AppDir: string;
   P: Integer;
+  PathChanged: Boolean;
 begin
   if CurUninstallStep = usPostUninstall then
   begin
     AppDir := ExpandConstant('{app}');
+    PathChanged := False;
 
     // PATH에서 제거
     if RegQueryStringValue(HKEY_CURRENT_USER, 'Environment', 'Path', Path) then
@@ -131,6 +149,7 @@ begin
       begin
         Delete(Path, P, Length(AppDir) + 1);
         RegWriteStringValue(HKEY_CURRENT_USER, 'Environment', 'Path', Path);
+        PathChanged := True;
       end
       else
       begin
@@ -140,6 +159,7 @@ begin
         begin
           Delete(Path, P, Length(AppDir) + 1);
           RegWriteStringValue(HKEY_CURRENT_USER, 'Environment', 'Path', Path);
+          PathChanged := True;
         end
         else
         begin
@@ -147,9 +167,14 @@ begin
           if Uppercase(Path) = Uppercase(AppDir) then
           begin
             RegDeleteValue(HKEY_CURRENT_USER, 'Environment', 'Path');
+            PathChanged := True;
           end;
         end;
       end;
     end;
+
+    // PATH 변경 시 시스템에 알림
+    if PathChanged then
+      RefreshEnvironment;
   end;
 end;

@@ -104,9 +104,8 @@ description: NoljiMa 프로젝트의 새 버전을 릴리스합니다. 버전 �
 - CHANGELOG 추가 내용
 - 검증 결과 요약
 
-### 6. Git 작업
+### 6. Git 커밋 및 푸시
 
-#### 6.1 커밋
 ```bash
 git add .
 git commit -m "release: prepare v새버전
@@ -118,11 +117,77 @@ git commit -m "release: prepare v새버전
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+
+git push
 ```
 
-#### 6.2 Git 태그 생성
+**중요**: 태그는 빌드 성공 후에 생성합니다.
 
-사용자에게 Git 태그를 생성할지 물어봅니다:
+### 7. 빌드 및 테스트
+
+#### 7.1 프로젝트 빌드
+```bash
+dotnet publish -c Release -r win-x64 --self-contained false -o ./publish
+```
+
+#### 7.2 빌드 테스트
+
+빌드된 실행 파일이 정상 동작하는지 확인:
+```bash
+./publish/NoljiMa.exe
+```
+
+예상 출력: "사용법: NoljiMa \"메시지\""
+
+**빌드 실패 시**:
+- 문제 수정 후 재빌드
+- 태그 생성 안 함
+- 사용자에게 오류 보고
+
+#### 7.3 포터블 zip 생성
+```bash
+cd publish && tar -a -c -f ../NoljiMa-v새버전-portable.zip *
+```
+
+#### 7.4 인스톨러 생성
+```bash
+"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
+```
+
+출력: `installer-output/NoljiMa-v새버전-Setup.exe`
+
+#### 7.5 인스톨러 테스트
+
+**중요**: Setup.exe를 직접 실행하여 설치 및 PATH 등록을 테스트합니다.
+
+```bash
+# 인스톨러 실행 (GUI 설치 진행)
+./installer-output/NoljiMa-v새버전-Setup.exe
+```
+
+**테스트 체크리스트**:
+1. 인스톨러 UI가 정상적으로 표시되는지 확인
+2. .NET 8 Runtime 체크가 동작하는지 확인
+3. PATH 추가 옵션이 **기본으로 체크**되어 있는지 확인
+4. 설치 완료 후 새 명령 프롬프트에서 `NoljiMa` 실행 확인
+5. PATH 등록 확인:
+   ```bash
+   where NoljiMa
+   # 예상: C:\Program Files\NoljiMa\NoljiMa.exe
+   ```
+
+**테스트 실패 시**:
+- 인스톨러 스크립트 수정
+- 재빌드 (`7.4`부터 다시 실행)
+- 태그 생성 안 함
+
+**테스트 완료 후 정리**:
+- 제어판에서 "NoljiMa" 제거
+- 또는 다음 릴리스 시 덮어쓰기 설치
+
+### 8. Git 태그 생성 및 푸시
+
+**빌드 성공 확인 후** Git 태그 생성:
 
 ```bash
 git tag -a v새버전 -m "NoljiMa v새버전
@@ -132,35 +197,11 @@ git tag -a v새버전 -m "NoljiMa v새버전
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+
+git push --tags
 ```
 
-#### 6.3 푸시
-
-```bash
-git push
-git push --tags  # 태그 생성한 경우
-```
-
-### 7. 빌드 및 배포
-
-#### 7.1 프로젝트 빌드
-```bash
-dotnet publish -c Release -r win-x64 --self-contained false -o ./publish
-```
-
-#### 7.2 포터블 zip 생성
-```bash
-cd publish && tar -a -c -f ../NoljiMa-v새버전-portable.zip *
-```
-
-#### 7.3 인스톨러 생성
-```bash
-"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
-```
-
-출력: `installer-output/NoljiMa-v새버전-Setup.exe`
-
-### 8. GitHub Release 생성
+### 9. GitHub Release 생성
 
 ```bash
 gh release create v새버전 \
@@ -170,7 +211,7 @@ gh release create v새버전 \
   installer-output/NoljiMa-v새버전-Setup.exe
 ```
 
-### 9. 다음 단계 안내
+### 10. 다음 단계 안내
 
 릴리스 완료 후 사용자에게 확인사항 안내:
 
