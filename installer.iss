@@ -40,7 +40,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
-Name: "addtopath"; Description: "PATH 환경 변수에 추가 (권장)"; GroupDescription: "추가 옵션:"; Flags: unchecked
+Name: "addtopath"; Description: "PATH 환경 변수에 추가 (권장)"; GroupDescription: "추가 옵션:"
 
 [Files]
 ; Runtime-dependent 버전 - 모든 필수 파일 포함
