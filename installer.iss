@@ -29,7 +29,7 @@ WizardStyle=modern
 ; SetupIconFile=icon.ico
 
 ; 권한 설정
-PrivilegesRequired=lowest
+PrivilegesRequired=admin
 
 ; 언어
 ShowLanguageDialog=auto
@@ -52,10 +52,15 @@ Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Code]
-// 환경 변수 변경 브로드캐스트 상수
-const
-  HWND_BROADCAST = $ffff;
-  WM_SETTINGCHANGE = $001A;
+#ifdef UNICODE
+  #define AW "W"
+#else
+  #define AW "A"
+#endif
+
+// Windows API 함수 선언
+function SendNotifyMessage(hWnd: Longint; Msg: Cardinal; wParam: Longint; lParam: Longint): BOOL;
+  external 'SendNotifyMessage{#AW}@user32.dll stdcall';
 
 // 환경 변수 변경을 시스템에 알림
 procedure RefreshEnvironment;
@@ -63,7 +68,8 @@ var
   S: string;
 begin
   S := 'Environment';
-  SendBroadcastNotifyMessage(HWND_BROADCAST, WM_SETTINGCHANGE, 0, CastStringToInteger(S));
+  // HWND_BROADCAST ($ffff), WM_SETTINGCHANGE ($1A)
+  SendNotifyMessage($ffff, $1A, 0, CastStringToInteger(S));
 end;
 
 // .NET 8 Runtime 체크 및 설치 안내
@@ -100,7 +106,7 @@ var
 begin
   if CurStep = ssPostInstall then
   begin
-    if IsTaskSelected('addtopath') then
+    if WizardIsTaskSelected('addtopath') then
     begin
       AppDir := ExpandConstant('{app}');
 
