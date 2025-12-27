@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2025-12-27
+
+### Changed
+- 인스톨러에서 PATH 환경 변수 추가를 기본값으로 설정
+
+### Documentation
+- README.md 및 릴리스 스킬 문서 개선
+
 ## [0.1.0] - 2025-12-27
 
 ### Added
