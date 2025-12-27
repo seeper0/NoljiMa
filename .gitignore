@@ -426,3 +426,4 @@ NoljiMa-v*.exe
 NoljiMa-v*.zip
 publish/
 publish-*/
+installer-output/

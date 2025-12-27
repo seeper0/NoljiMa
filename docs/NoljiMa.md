@@ -140,7 +140,32 @@ NoljiMa "테스트 메시지"
 
 ## 배포
 
-### 배포 파일 생성
+### 인스톨러 빌드 (Inno Setup)
+
+#### 1. Inno Setup 설치
+[Inno Setup](https://jrsoftware.org/isinfo.php) 다운로드 및 설치
+
+#### 2. 프로젝트 빌드
+```bash
+# 버전이 포함된 빌드
+dotnet publish -c Release -r win-x64 --self-contained false -o ./publish
+```
+
+#### 3. 인스톨러 컴파일
+```bash
+# Inno Setup Compiler로 빌드
+"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
+```
+
+출력 파일: `installer-output/NoljiMa-v0.1.0-Setup.exe`
+
+**인스톤러 특징:**
+- .NET 8 Runtime 자동 체크
+- PATH 환경 변수 자동 등록 옵션
+- 시작 메뉴 바로가기 생성
+- 언어: 한국어/영어 지원
+
+### 배포 파일 생성 (수동)
 
 #### 1. 프레임워크 종속 배포 (권장)
 ```bash
