@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] - 2025-12-28
+
+### Changed
+- 인스톨러 설치 완료 후 선택 옵션 추가 (프로그램 실행, GitHub 페이지 방문)
+- 시작 메뉴에 README 및 프로젝트 페이지 링크 추가
+- 설치 폴더에 README.md 파일 포함
+
 ## [0.1.2] - 2025-12-27
 
 ### Changed

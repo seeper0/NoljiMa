@@ -2,7 +2,7 @@
 ; 한국어 지원 포함
 
 #define MyAppName "NoljiMa"
-#define MyAppVersion "0.1.2"
+#define MyAppVersion "0.1.3"
 #define MyAppPublisher "seeper0"
 #define MyAppURL "https://github.com/seeper0/NoljiMa"
 #define MyAppExeName "NoljiMa.exe"
@@ -45,11 +45,18 @@ Name: "addtopath"; Description: "PATH 환경 변수에 추가 (권장)"; GroupDe
 [Files]
 ; Runtime-dependent 버전 - 모든 필수 파일 포함
 Source: "D:\Project\NoljiMa\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "D:\Project\NoljiMa\README.md"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
+Name: "{group}\README"; Filename: "{app}\README.md"
+Name: "{group}\NoljiMa 페이지"; Filename: "https://github.com/seeper0/NoljiMa"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+
+[Run]
+Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+Filename: "https://github.com/seeper0/NoljiMa"; Description: "NoljiMa 페이지 방문"; Flags: postinstall shellexec skipifsilent
 
 [Code]
 #ifdef UNICODE
