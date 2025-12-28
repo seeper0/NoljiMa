@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5] - 2025-12-29
+
+### Changed
+- Config 파일 경로 변경: `%AppData%\NoljiMa\NoljiMa.ini` → `%LocalAppData%\NoljiMa\config.ini`
+- Local 폴더 사용으로 로밍 프로필 동기화 제외 및 성능 개선
+
 ## [0.1.4] - 2025-12-28
 
 ### Fixed

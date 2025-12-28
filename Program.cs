@@ -39,7 +39,7 @@ class Program
 
     static string GetIniPath()
     {
-        string appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        string appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         string noljiMaFolder = Path.Combine(appDataPath, "NoljiMa");
 
         // 폴더가 없으면 생성
@@ -48,7 +48,7 @@ class Program
             Directory.CreateDirectory(noljiMaFolder);
         }
 
-        return Path.Combine(noljiMaFolder, "NoljiMa.ini");
+        return Path.Combine(noljiMaFolder, "config.ini");
     }
 
     static (string? BotToken, string? ChatId) LoadConfig(string iniPath)
