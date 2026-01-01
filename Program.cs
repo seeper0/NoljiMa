@@ -20,20 +20,63 @@ class Program
         if (args.Length == 0)
         {
             Console.WriteLine("사용법:");
-            Console.WriteLine("  NoljiMa \"메시지\"                    # 메시지 전송");
-            Console.WriteLine("  NoljiMa --wait \"[패턴]\"             # 응답 대기 (기본 300초)");
-            Console.WriteLine("  NoljiMa --wait \"[패턴]\" --timeout 600  # 응답 대기 (타임아웃 지정)");
+            Console.WriteLine("  NoljiMa \"[ID] 메시지\"               # 메시지 전송");
+            Console.WriteLine("  NoljiMa --wait \"[키]\"               # 응답 대기 (기본 24시간, 5분~1시간 간격)");
+            Console.WriteLine("  NoljiMa --wait \"[키]\" --timeout 600  # 응답 대기 (타임아웃 지정, 5분 간격)");
             return;
         }
 
         // --wait 파라미터 확인 (응답 대기 모드)
         int waitIndex = Array.IndexOf(args, "--wait");
-        if (waitIndex >= 0 && waitIndex + 1 < args.Length)
+        if (waitIndex >= 0)
         {
+            // --wait 다음에 패턴이 없으면 오류
+            if (waitIndex + 1 >= args.Length)
+            {
+                Console.WriteLine("오류: --wait 다음에 패턴을 지정해야 합니다.");
+                Console.WriteLine();
+                Console.WriteLine("사용법:");
+                Console.WriteLine("  NoljiMa \"[ID] 메시지\"               # 메시지 전송");
+                Console.WriteLine("  NoljiMa --wait \"[키]\"               # 응답 대기 (기본 24시간, 5분~1시간 간격)");
+                Console.WriteLine("  NoljiMa --wait \"[키]\" --timeout 600  # 응답 대기 (타임아웃 지정, 5분 간격)");
+                Environment.Exit(1);
+                return;
+            }
+
             string pattern = args[waitIndex + 1];
 
-            // --timeout 파라미터 확인 (기본값 300초)
-            int timeout = 300;
+            // 패턴 형식 검증: [키]만 허용 (내용 없음)
+            if (!pattern.StartsWith("[") || !pattern.Contains("]"))
+            {
+                Console.WriteLine("오류: 패턴은 [키] 형식이어야 합니다.");
+                Console.WriteLine($"입력된 패턴: \"{pattern}\"");
+                Console.WriteLine();
+                Console.WriteLine("예시:");
+                Console.WriteLine("  NoljiMa --wait \"[작업#001]\"");
+                Console.WriteLine("  NoljiMa --wait \"[build-123]\"");
+                Environment.Exit(1);
+                return;
+            }
+
+            // [키] 뒤에 내용이 있으면 안 됨
+            int closeBracketIndex = pattern.IndexOf(']');
+            string afterBracket = pattern.Substring(closeBracketIndex + 1).Trim();
+            if (!string.IsNullOrEmpty(afterBracket))
+            {
+                Console.WriteLine("오류: wait 패턴은 [키]만 입력해야 합니다. 내용을 포함할 수 없습니다.");
+                Console.WriteLine($"입력된 패턴: \"{pattern}\"");
+                Console.WriteLine();
+                Console.WriteLine("올바른 예시:");
+                Console.WriteLine("  NoljiMa --wait \"[작업#001]\"");
+                Console.WriteLine();
+                Console.WriteLine("잘못된 예시:");
+                Console.WriteLine("  NoljiMa --wait \"[작업#001] 대기중\"  ← 내용 포함 불가");
+                Environment.Exit(1);
+                return;
+            }
+
+            // --timeout 파라미터 확인 (기본값 24시간 = 86400초)
+            int timeout = 86400;
             int timeoutIndex = Array.IndexOf(args, "--timeout");
             if (timeoutIndex >= 0 && timeoutIndex + 1 < args.Length)
             {
@@ -48,8 +91,34 @@ class Program
             Environment.Exit(exitCode);
         }
 
+        // 알 수 없는 옵션 체크
+        if (args[0].StartsWith("--"))
+        {
+            Console.WriteLine($"오류: 알 수 없는 옵션입니다: {args[0]}");
+            Console.WriteLine();
+            Console.WriteLine("사용법:");
+            Console.WriteLine("  NoljiMa \"[ID] 메시지\"               # 메시지 전송");
+            Console.WriteLine("  NoljiMa --wait \"[키]\"               # 응답 대기 (기본 24시간, 5분~1시간 간격)");
+            Console.WriteLine("  NoljiMa --wait \"[키]\" --timeout 600  # 응답 대기 (타임아웃 지정, 5분 간격)");
+            Environment.Exit(1);
+            return;
+        }
+
         // 메시지 전송 모드 (기존 로직)
         string message = args[0];
+
+        // 메시지 형식 검증: [...]로 시작해야 함
+        if (!message.StartsWith("[") || !message.Contains("]"))
+        {
+            Console.WriteLine("오류: 메시지는 [ID] 내용 형식이어야 합니다.");
+            Console.WriteLine($"입력된 메시지: \"{message}\"");
+            Console.WriteLine();
+            Console.WriteLine("예시:");
+            Console.WriteLine("  NoljiMa \"[작업#001] 빌드 완료\"");
+            Console.WriteLine("  NoljiMa \"[build-123] 테스트 성공\"");
+            Environment.Exit(1);
+            return;
+        }
         bool success = SendTelegramMessage(botToken, chatId, message, out string error);
 
         if (success)
@@ -261,7 +330,7 @@ class Program
         try
         {
             using var httpClient = new HttpClient();
-            httpClient.Timeout = TimeSpan.FromSeconds(35); // Long Polling 30초 + 여유 5초
+            httpClient.Timeout = TimeSpan.FromSeconds(45); // Long Polling 30초 + 여유 15초
 
             var url = $"https://api.telegram.org/bot{botToken}/getUpdates?offset={offset}&timeout=30";
 
@@ -335,6 +404,11 @@ class Program
         var offsetPath = GetOffsetPath();
         long offset = LoadOffset(offsetPath);
 
+        // 타임아웃 지정 여부에 따라 대기 간격 결정
+        bool isDefaultTimeout = (timeoutSeconds == 86400); // 24시간 = 기본값
+        int sleepInterval = 300; // 5분(300초)부터 시작
+        const int maxSleepInterval = 3600; // 최대 1시간
+
         Console.WriteLine($"응답 대기 중... (패턴: \"{pattern}\", 타임아웃: {timeoutSeconds}초)");
 
         var startTime = DateTime.Now;
@@ -382,6 +456,29 @@ class Program
             if (updates.Count > 0)
             {
                 SaveOffset(offsetPath, offset);
+            }
+
+            // Sleep 전에 타임아웃 체크
+            var elapsedSeconds = (DateTime.Now - startTime).TotalSeconds;
+            if (elapsedSeconds >= timeoutSeconds)
+            {
+                break; // 타임아웃, 루프 종료
+            }
+
+            // 남은 시간 계산
+            var remainingSeconds = timeoutSeconds - elapsedSeconds;
+            var actualSleepTime = Math.Min(sleepInterval, (int)remainingSeconds);
+
+            // 다음 폴링까지 대기
+            if (actualSleepTime > 0)
+            {
+                System.Threading.Thread.Sleep(actualSleepTime * 1000);
+            }
+
+            // 기본 타임아웃(24시간)일 때만 대기 간격 지수 증가
+            if (isDefaultTimeout && sleepInterval < maxSleepInterval)
+            {
+                sleepInterval = Math.Min(sleepInterval * 2, maxSleepInterval);
             }
         }
 
