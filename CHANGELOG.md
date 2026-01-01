@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2026-01-01
+
+### Fixed
+- 재시도 중 "폴링 실패" 메시지 출력 개선 → "네트워크 오류 감지, 재시도 중..." 표시
+- 재시도 진행 상황 표시 추가 (1/3, 2/3, 3/3)
+- 최대 재시도 횟수 초과 시에만 "폴링 실패" 메시지 출력
+
 ## [0.2.1] - 2026-01-01
 
 ### Added
