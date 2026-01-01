@@ -421,14 +421,17 @@ class Program
 
             if (!string.IsNullOrEmpty(error))
             {
-                Console.WriteLine($"폴링 실패: {error}");
                 retryCount++;
 
                 if (retryCount >= maxRetries)
                 {
+                    Console.WriteLine($"폴링 실패: {error}");
                     Console.WriteLine($"최대 재시도 횟수({maxRetries})를 초과했습니다.");
                     return 1;
                 }
+
+                // 재시도 메시지 출력
+                Console.WriteLine($"네트워크 오류 감지, 재시도 중... ({retryCount}/{maxRetries})");
 
                 // 재시도 전 대기 (5초)
                 System.Threading.Thread.Sleep(5000);
