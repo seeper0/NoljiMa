@@ -9,12 +9,107 @@ description: NoljiMa 프로젝트의 새 버전을 릴리스합니다. 버전 �
 
 ## 릴리스 프로세스
 
-### 1. 버전 번호 확인
+### 1. 현재 버전 확인 및 검증
+
+#### 1.1 다중 소스에서 버전 확인
+
+다음 파일들에서 현재 버전을 읽어서 비교:
+
+**installer.iss** (주 버전 소스):
+```bash
+grep "#define MyAppVersion" installer.iss
+```
+
+**NoljiMa.csproj**:
+```bash
+grep "<Version>" NoljiMa.csproj
+grep "<AssemblyVersion>" NoljiMa.csproj
+grep "<FileVersion>" NoljiMa.csproj
+```
+
+**CHANGELOG.md**:
+```bash
+# 최상단 버전 확인
+head -n 20 CHANGELOG.md | grep "^## \["
+```
+
+**Git 태그**:
+```bash
+git tag --sort=-version:refname | head -n 5
+```
+
+#### 1.2 버전 일관성 검증
+
+모든 소스에서 읽은 버전이 일치하는지 확인:
+
+- ✅ 일치: 현재 버전으로 확정
+- ❌ 불일치: 사용자에게 경고 후 수정 필요
+
+**불일치 예시**:
+```
+⚠️  버전 불일치 발견:
+- installer.iss: 0.1.5
+- NoljiMa.csproj: 0.1.4
+- CHANGELOG.md: 0.1.5
+- Git 태그: v0.1.5
+
+→ NoljiMa.csproj를 0.1.5로 수정해야 합니다.
+```
+
+#### 1.3 버전 히스토리 표시
+
+사용자에게 버전 히스토리를 보여줍니다:
+
+```
+📋 버전 히스토리:
+현재: v0.1.5 (2025-12-29)
+이전: v0.1.4 (2025-12-28)
+     v0.1.3 (2025-12-27)
+     v0.1.2 (2025-12-26)
+     v0.1.1 (2025-12-25)
+```
+
+#### 1.4 새 버전 번호 결정
 
 사용자에게 새 버전 번호를 물어봅니다:
-- 현재 버전을 표시
-- 새 버전 번호 입력 요청 (예: 0.1.1, 0.2.0, 1.0.0)
-- Semantic Versioning 규칙 설명
+
+**Semantic Versioning 규칙 설명**:
+- **MAJOR** (X.0.0): Breaking changes (호환성 깨짐)
+- **MINOR** (0.X.0): 새 기능 추가 (하위 호환)
+- **PATCH** (0.0.X): 버그 수정 (하위 호환)
+
+**추천 버전 제시**:
+```
+현재 버전: 0.1.5
+
+다음 버전 추천:
+- 0.1.6 (패치) - 버그 수정
+- 0.2.0 (마이너) - 새 기능 추가
+- 1.0.0 (메이저) - 첫 정식 릴리스
+
+새 버전 번호를 입력하세요:
+```
+
+#### 1.5 버전 번호 검증
+
+입력받은 버전 번호 검증:
+
+- ✅ Semantic Versioning 형식 (X.Y.Z)
+- ✅ 현재 버전보다 높은 버전
+- ✅ 논리적 증가 (예: 0.1.5 → 0.3.0은 경고)
+
+**검증 실패 예시**:
+```
+❌ 잘못된 버전: "0.1.a"
+   Semantic Versioning 형식이 아닙니다. (X.Y.Z 형식 필요)
+
+❌ 잘못된 버전: "0.1.3"
+   현재 버전 (0.1.5)보다 낮습니다.
+
+⚠️  경고: "0.3.0"
+   0.1.5 → 0.3.0로 건너뛰기는 비정상적입니다.
+   계속 진행하시겠습니까? (y/n)
+```
 
 ### 2. 버전 정보 업데이트
 
@@ -32,9 +127,31 @@ description: NoljiMa 프로젝트의 새 버전을 릴리스합니다. 버전 �
 #define MyAppVersion "새버전"
 ```
 
-### 3. CHANGELOG.md 업데이트
+### 3. 변경 사항 확인
 
-사용자에게 변경 사항을 물어보고 CHANGELOG.md 상단에 새 버전 섹션 추가:
+사용자에게 이번 릴리스의 변경 사항을 물어봅니다:
+
+```
+이번 릴리스에 포함된 변경 사항을 알려주세요:
+
+Added (새로운 기능):
+-
+
+Changed (변경된 기능):
+-
+
+Fixed (버그 수정):
+-
+
+Removed (제거된 기능):
+-
+```
+
+사용자 입력을 받아서 CHANGELOG.md 업데이트 준비.
+
+### 4. CHANGELOG.md 업데이트
+
+3단계에서 받은 변경 사항을 바탕으로 CHANGELOG.md 상단에 새 버전 섹션 추가:
 
 ```markdown
 ## [새버전] - YYYY-MM-DD
@@ -54,10 +171,10 @@ description: NoljiMa 프로젝트의 새 버전을 릴리스합니다. 버전 �
 
 **중요**:
 - 날짜는 오늘 날짜 사용 (YYYY-MM-DD 형식)
-- 변경 사항은 사용자에게 직접 물어봐서 작성
+- 변경 사항은 3단계에서 받은 내용 사용
 - Keep a Changelog 형식 준수
 
-### 4. 문서 무결성 검증
+### 5. 문서 무결성 검증
 
 다음 항목들을 검증:
 
@@ -96,7 +213,7 @@ description: NoljiMa 프로젝트의 새 버전을 릴리스합니다. 버전 �
 - RELEASE_NOTES_*.md (없어야 함)
 ```
 
-### 5. 변경 사항 보고
+### 6. 변경 사항 보고
 
 사용자에게 다음 정보를 보고:
 - 업데이트된 파일 목록
@@ -104,7 +221,7 @@ description: NoljiMa 프로젝트의 새 버전을 릴리스합니다. 버전 �
 - CHANGELOG 추가 내용
 - 검증 결과 요약
 
-### 6. Git 커밋 및 푸시
+### 7. Git 커밋 및 푸시
 
 ```bash
 git add .
@@ -123,14 +240,14 @@ git push
 
 **중요**: 태그는 빌드 성공 후에 생성합니다.
 
-### 7. 빌드 및 테스트
+### 8. 빌드 및 테스트
 
-#### 7.1 프로젝트 빌드
+#### 8.1 프로젝트 빌드
 ```bash
 dotnet publish -c Release -r win-x64 --self-contained false -o ./publish
 ```
 
-#### 7.2 빌드 테스트
+#### 8.2 빌드 테스트
 
 빌드된 실행 파일이 정상 동작하는지 확인:
 ```bash
@@ -144,19 +261,19 @@ dotnet publish -c Release -r win-x64 --self-contained false -o ./publish
 - 태그 생성 안 함
 - 사용자에게 오류 보고
 
-#### 7.3 포터블 zip 생성
+#### 8.3 포터블 zip 생성
 ```bash
 cd publish && tar -a -c -f ../NoljiMa-v새버전-portable.zip *
 ```
 
-#### 7.4 인스톨러 생성
+#### 8.4 인스톨러 생성
 ```bash
 "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
 ```
 
 출력: `installer-output/NoljiMa-v새버전-Setup.exe`
 
-#### 7.5 인스톨러 테스트
+#### 8.5 인스톨러 테스트
 
 **중요**: Setup.exe를 직접 실행하여 설치 및 PATH 등록을 테스트합니다.
 
@@ -178,14 +295,14 @@ cd publish && tar -a -c -f ../NoljiMa-v새버전-portable.zip *
 
 **테스트 실패 시**:
 - 인스톨러 스크립트 수정
-- 재빌드 (`7.4`부터 다시 실행)
+- 재빌드 (`8.4`부터 다시 실행)
 - 태그 생성 안 함
 
 **테스트 완료 후 정리**:
 - 제어판에서 "NoljiMa" 제거
 - 또는 다음 릴리스 시 덮어쓰기 설치
 
-### 8. Git 태그 생성 및 푸시
+### 9. Git 태그 생성 및 푸시
 
 **빌드 성공 확인 후** Git 태그 생성:
 
@@ -201,7 +318,7 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 git push --tags
 ```
 
-### 9. GitHub Release 생성
+### 10. GitHub Release 생성
 
 ```bash
 gh release create v새버전 \
@@ -211,7 +328,7 @@ gh release create v새버전 \
   installer-output/NoljiMa-v새버전-Setup.exe
 ```
 
-### 10. 다음 단계 안내
+### 11. 다음 단계 안내
 
 릴리스 완료 후 사용자에게 확인사항 안내:
 
@@ -278,13 +395,15 @@ gh release create v새버전 \
 
 ## 주의사항
 
-1. **항상 현재 버전 확인**: installer.iss에서 현재 버전 읽기
-2. **CHANGELOG.md 맨 위에 추가**: 역순 정렬 유지
-3. **날짜 형식**: YYYY-MM-DD (예: 2025-12-27)
-4. **커밋 메시지**: "release: prepare v버전" 형식 사용
-5. **태그 메시지**: CHANGELOG 내용 포함
-6. **nul 파일 검증**: Git 커밋 전 자동 검증
-7. **단일 파일 구조**: Program.cs만 존재, 분리된 파일 없음
+1. **다중 소스에서 버전 검증**: installer.iss, NoljiMa.csproj, CHANGELOG.md, Git 태그 모두 확인
+2. **버전 일관성 유지**: 모든 파일의 버전이 일치해야 함
+3. **버전 번호 검증**: Semantic Versioning 형식 준수, 현재 버전보다 높은 버전
+4. **CHANGELOG.md 맨 위에 추가**: 역순 정렬 유지
+5. **날짜 형식**: YYYY-MM-DD (예: 2025-12-27)
+6. **커밋 메시지**: "release: prepare v버전" 형식 사용
+7. **태그 메시지**: CHANGELOG 내용 포함
+8. **nul 파일 검증**: Git 커밋 전 자동 검증
+9. **단일 파일 구조**: Program.cs만 존재, 분리된 파일 없음
 
 ## 필수 도구
 
