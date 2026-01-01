@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-01-01
+
+### Added
+- 메시지 형식 검증: `[ID] 내용` 형식 필수
+- wait 패턴 검증: `[키]`만 허용 (내용 포함 불가)
+- 파라미터 검증: 누락된 패턴, 알 수 없는 옵션 감지
+
+### Changed
+- 기본 타임아웃: 300초 → 86400초 (24시간)
+- Long Polling timeout: 가변 → 고정 30초
+- 대기 간격: 5분부터 시작, 지수 증가하여 최대 1시간
+- Sleep 전 타임아웃 체크 추가로 정확한 타임아웃 보장
+
+### Fixed
+- `--wait` 파라미터만 입력 시 "--wait"을 메시지로 전송하는 버그 수정
+
 ## [0.2.0] - 2026-01-01
 
 ### Added
