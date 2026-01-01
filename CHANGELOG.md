@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-01-01
+
+### Added
+- **쌍방향 소통 기능**: 텔레그램 메시지 응답 대기 기능 추가 (`--wait`, `--timeout` 파라미터)
+- getUpdates API를 통한 Long Polling 구현 (30초 간격)
+- offset 파일 관리로 메시지 중복 방지 (`%LOCALAPPDATA%\NoljiMa\offset.txt`)
+
 ## [0.1.5] - 2025-12-29
 
 ### Changed
