@@ -23,6 +23,13 @@ class Program
             return;
         }
 
+        // --clear-offset 옵션 확인
+        if (args.Length > 0 && args[0] == "--clear-offset")
+        {
+            ClearOffset();
+            return;
+        }
+
         // 인자 없음 → 사용법 출력
         if (args.Length == 0)
         {
@@ -137,6 +144,32 @@ class Program
         Console.WriteLine("  NoljiMa \"[ID] 메시지\"               # 메시지 전송");
         Console.WriteLine("  NoljiMa --wait \"[키]\"               # 응답 대기 (기본 24시간, 5분~1시간 간격)");
         Console.WriteLine("  NoljiMa --wait \"[키]\" --timeout 600  # 응답 대기 (타임아웃 지정, 5분 간격)");
+        Console.WriteLine("  NoljiMa --clear-offset              # offset 클리어 (메시지 읽기 위치 초기화)");
+    }
+
+    static void ClearOffset()
+    {
+        var offsetPath = GetOffsetPath();
+
+        try
+        {
+            if (File.Exists(offsetPath))
+            {
+                File.Delete(offsetPath);
+                Console.WriteLine("offset이 클리어되었습니다.");
+                Console.WriteLine($"파일 위치: {offsetPath}");
+            }
+            else
+            {
+                Console.WriteLine("클리어할 offset 파일이 없습니다.");
+                Console.WriteLine($"파일 위치: {offsetPath}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"offset 클리어 실패: {ex.Message}");
+            Environment.Exit(1);
+        }
     }
 
     static string GetIniPath()
