@@ -9,32 +9,39 @@ Telegram으로 알림을 전송하는 간단한 CLI 도구입니다. 작업 완�
 ## 기능
 
 ### 핵심 기능
-- **Telegram 메시지 전송**: Bot API를 통한 간편한 알림
+- **Telegram 메시지 전송**: Bot API를 통한 간편한 알림 (모든 텍스트 전송 가능)
 - **쌍방향 소통**: 텔레그램 응답 대기 기능 (`--wait` 파라미터)
-- **메시지 형식 검증**: `[ID] 내용` 형식으로 메시지 추적 및 식별
+- **offset 기반 메시지 추적**: 이미 읽은 메시지와 새 메시지 자동 구분
 - **INI 설정 관리**: `%LocalAppData%\NoljiMa\config.ini`로 설정 관리
 - **초기 설정 모드**: 처음 실행 시 대화형으로 Bot Token과 Chat ID 입력
 - **자동 테스트**: 설정 완료 시 테스트 메시지 전송으로 검증
 - **명령줄 통합**: PATH 등록 시 어디서든 `NoljiMa "메시지"` 실행 가능
 
-### 메시지 형식
-모든 메시지는 `[ID] 내용` 형식을 사용합니다.
+### 핵심 워크플로우
 
-```
-[작업#001] 빌드 완료, 확인 필요
-[1234] 빌드 실패 확인 요청
-[노티#999] 배포 준비 완료
+**작업 완료 후 Claude와 소통하기**:
+```bash
+# 1. 작업 완료 후 질문 전송
+dotnet build
+NoljiMa "빌드 완료. 다음 뭐 할까?"
+
+# 2. 응답 대기 (⚠️ 병렬 실행 금지!)
+NoljiMa --wait
+
+# 3. 텔레그램에서 답변
+"테스트 돌려봐"
+
+# 4. NoljiMa가 메시지를 받아서 Claude에게 전달
+# Claude가 테스트 실행...
 ```
 
-- **ID**: 고유 식별자 (`[` `]`로 감싸기)
-- **내용**: 전달할 메시지 (ID 뒤에 공백 후 작성)
+**중요**: offset 기반으로 새 메시지를 자동으로 구분하므로 `[ID]` 형식이 필요 없습니다. 간단하게 메시지를 보내고 응답을 기다리면 됩니다.
 
 ### 에러 처리
 - 네트워크 오류 감지 및 자동 재시도 (최대 3회)
 - 잘못된 Bot Token 검증
 - 잘못된 Chat ID 검증
 - 설정 파일 오류 처리
-- 메시지 형식 검증
 
 ## 기술 스택
 
@@ -93,12 +100,12 @@ NoljiMa
 
 ```bash
 # PATH 등록 전
-NoljiMa.exe "[작업#001] 빌드 완료"
-NoljiMa.exe "[1234] Spine 최적화 방법 질문"
+NoljiMa.exe "빌드 완료"
+NoljiMa.exe "Spine 최적화 방법 질문"
 
 # PATH 등록 후 (어디서든 실행 가능)
-NoljiMa "[작업#001] 빌드 완료"
-NoljiMa "[1234] Spine 최적화 방법 질문"
+NoljiMa "빌드 완료"
+NoljiMa "다음 작업은 뭐 할까?"
 ```
 
 ### 응답 대기 모드
@@ -106,16 +113,19 @@ NoljiMa "[1234] Spine 최적화 방법 질문"
 텔레그램에서 사용자 응답을 기다릴 수 있습니다:
 
 ```bash
-# 특정 ID를 포함한 메시지 대기 (기본 타임아웃: 24시간)
-NoljiMa --wait "[작업#001]"
+# 다음 새 메시지 대기 (기본 타임아웃: 24시간)
+NoljiMa --wait
+
+# 특정 패턴 포함 메시지 대기 (선택적)
+NoljiMa --wait "확인"
 
 # 타임아웃 지정 (초 단위)
-NoljiMa --wait "[작업#001]" --timeout 600
+NoljiMa --wait --timeout 600
 
 # 워크플로우 예시
-NoljiMa "[작업#001] 코드 리뷰 필요"    # 1. 알림 전송
-NoljiMa --wait "[작업#001]"            # 2. 응답 대기 (폴링 시작)
-# 사용자가 텔레그램에서 "[작업#001] 확인완료" 입력
+NoljiMa "코드 리뷰 필요"               # 1. 알림 전송
+NoljiMa --wait                         # 2. 응답 대기 (폴링 시작)
+# 사용자가 텔레그램에서 "확인완료" 입력
 # → NoljiMa 종료 (exit 0)
 ```
 
@@ -150,6 +160,27 @@ NoljiMa --wait "[작업#001]"  # 모든 메시지를 처음부터 확인
 | 0 | 성공 | 메시지 전송 성공 또는 대기 중 응답 발견 |
 | 1 | 실패 | 전송 실패, 타임아웃, 또는 설정 오류 |
 
+### ⚠️ 주의사항
+
+#### 병렬 실행 금지
+
+**NoljiMa를 동시에 여러 개 실행하지 마세요.** 특히 `--wait` 모드는 `offset.txt` 파일을 공유하므로 병렬 실행 시 메시지 중복 처리나 누락이 발생할 수 있습니다.
+
+**❌ 하지 마세요**:
+```bash
+NoljiMa --wait &         # 백그라운드
+NoljiMa --wait           # 동시 실행 ← offset 충돌!
+```
+
+**✅ 올바른 사용**:
+```bash
+NoljiMa "작업 시작"
+# ... 작업 진행 ...
+NoljiMa --wait           # 응답 대기 (하나만 실행)
+```
+
+**이유**: `offset.txt`는 "어디까지 읽었는지" 저장하는 단일 파일입니다. 여러 프로세스가 동시에 읽고 쓰면 메시지 추적이 꼬일 수 있습니다.
+
 ### 빌드 스크립트에 통합
 
 #### Batch Script
@@ -157,9 +188,9 @@ NoljiMa --wait "[작업#001]"  # 모든 메시지를 처음부터 확인
 @echo off
 dotnet build -c Release
 if %ERRORLEVEL% EQU 0 (
-    NoljiMa "[빌드] 빌드 성공"
+    NoljiMa "빌드 성공"
 ) else (
-    NoljiMa "[빌드] 빌드 실패"
+    NoljiMa "빌드 실패"
 )
 ```
 
@@ -167,15 +198,15 @@ if %ERRORLEVEL% EQU 0 (
 ```powershell
 dotnet build -c Release
 if ($LASTEXITCODE -eq 0) {
-    NoljiMa "[빌드] 빌드 성공"
+    NoljiMa "빌드 성공"
 } else {
-    NoljiMa "[빌드] 빌드 실패"
+    NoljiMa "빌드 실패"
 }
 ```
 
 #### Bash (WSL/Git Bash)
 ```bash
-dotnet build -c Release && NoljiMa "[빌드] 빌드 성공" || NoljiMa "[빌드] 빌드 실패"
+dotnet build -c Release && NoljiMa "빌드 성공" || NoljiMa "빌드 실패"
 ```
 
 ## Telegram Bot 설정

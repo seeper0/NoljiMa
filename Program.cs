@@ -41,46 +41,13 @@ class Program
         int waitIndex = Array.IndexOf(args, "--wait");
         if (waitIndex >= 0)
         {
-            // --wait 다음에 패턴이 없으면 오류
-            if (waitIndex + 1 >= args.Length)
-            {
-                Console.WriteLine("오류: --wait 다음에 패턴을 지정해야 합니다.");
-                Console.WriteLine();
-                PrintHelp();
-                Environment.Exit(1);
-                return;
-            }
+            // 패턴 확인 (선택적)
+            string? pattern = null;
 
-            string pattern = args[waitIndex + 1];
-
-            // 패턴 형식 검증: [키]만 허용 (내용 없음)
-            if (!pattern.StartsWith("[") || !pattern.Contains("]"))
+            // --wait 다음에 패턴이 있고, 그것이 다른 옵션이 아니면 패턴으로 사용
+            if (waitIndex + 1 < args.Length && !args[waitIndex + 1].StartsWith("--"))
             {
-                Console.WriteLine("오류: 패턴은 [키] 형식이어야 합니다.");
-                Console.WriteLine($"입력된 패턴: \"{pattern}\"");
-                Console.WriteLine();
-                Console.WriteLine("예시:");
-                Console.WriteLine("  NoljiMa --wait \"[작업#001]\"");
-                Console.WriteLine("  NoljiMa --wait \"[build-123]\"");
-                Environment.Exit(1);
-                return;
-            }
-
-            // [키] 뒤에 내용이 있으면 안 됨
-            int closeBracketIndex = pattern.IndexOf(']');
-            string afterBracket = pattern.Substring(closeBracketIndex + 1).Trim();
-            if (!string.IsNullOrEmpty(afterBracket))
-            {
-                Console.WriteLine("오류: wait 패턴은 [키]만 입력해야 합니다. 내용을 포함할 수 없습니다.");
-                Console.WriteLine($"입력된 패턴: \"{pattern}\"");
-                Console.WriteLine();
-                Console.WriteLine("올바른 예시:");
-                Console.WriteLine("  NoljiMa --wait \"[작업#001]\"");
-                Console.WriteLine();
-                Console.WriteLine("잘못된 예시:");
-                Console.WriteLine("  NoljiMa --wait \"[작업#001] 대기중\"  ← 내용 포함 불가");
-                Environment.Exit(1);
-                return;
+                pattern = args[waitIndex + 1];
             }
 
             // --timeout 파라미터 확인 (기본값 24시간 = 86400초)
@@ -109,21 +76,17 @@ class Program
             return;
         }
 
-        // 메시지 전송 모드 (기존 로직)
+        // 메시지 전송 모드
         string message = args[0];
 
-        // 메시지 형식 검증: [...]로 시작해야 함
-        if (!message.StartsWith("[") || !message.Contains("]"))
+        // 빈 메시지 검증
+        if (string.IsNullOrWhiteSpace(message))
         {
-            Console.WriteLine("오류: 메시지는 [ID] 내용 형식이어야 합니다.");
-            Console.WriteLine($"입력된 메시지: \"{message}\"");
-            Console.WriteLine();
-            Console.WriteLine("예시:");
-            Console.WriteLine("  NoljiMa \"[작업#001] 빌드 완료\"");
-            Console.WriteLine("  NoljiMa \"[build-123] 테스트 성공\"");
+            Console.WriteLine("오류: 메시지가 비어있습니다.");
             Environment.Exit(1);
             return;
         }
+
         bool success = SendTelegramMessage(botToken, chatId, message, out string error);
 
         if (success)
@@ -141,10 +104,13 @@ class Program
     static void PrintHelp()
     {
         Console.WriteLine("사용법:");
-        Console.WriteLine("  NoljiMa \"[ID] 메시지\"               # 메시지 전송");
-        Console.WriteLine("  NoljiMa --wait \"[키]\"               # 응답 대기 (기본 24시간, 5분~1시간 간격)");
-        Console.WriteLine("  NoljiMa --wait \"[키]\" --timeout 600  # 응답 대기 (타임아웃 지정, 5분 간격)");
+        Console.WriteLine("  NoljiMa \"메시지\"                    # 메시지 전송");
+        Console.WriteLine("  NoljiMa --wait                      # 응답 대기 (다음 새 메시지)");
+        Console.WriteLine("  NoljiMa --wait \"패턴\"               # 패턴 포함 메시지 대기");
+        Console.WriteLine("  NoljiMa --wait --timeout 600        # 타임아웃 지정 (초)");
         Console.WriteLine("  NoljiMa --clear-offset              # offset 클리어 (메시지 읽기 위치 초기화)");
+        Console.WriteLine();
+        Console.WriteLine("⚠️  주의: NoljiMa는 병렬 실행하지 마세요 (특히 --wait 모드)");
     }
 
     static void ClearOffset()
@@ -438,7 +404,7 @@ class Program
         }
     }
 
-    static int WaitForMessage(string botToken, string pattern, int timeoutSeconds)
+    static int WaitForMessage(string botToken, string? pattern, int timeoutSeconds)
     {
         var offsetPath = GetOffsetPath();
         long offset = LoadOffset(offsetPath);
@@ -448,7 +414,14 @@ class Program
         int sleepInterval = 300; // 5분(300초)부터 시작
         const int maxSleepInterval = 3600; // 최대 1시간
 
-        Console.WriteLine($"응답 대기 중... (패턴: \"{pattern}\", 타임아웃: {timeoutSeconds}초)");
+        if (string.IsNullOrEmpty(pattern))
+        {
+            Console.WriteLine($"응답 대기 중... (모든 새 메시지, 타임아웃: {timeoutSeconds}초)");
+        }
+        else
+        {
+            Console.WriteLine($"응답 대기 중... (패턴: \"{pattern}\", 타임아웃: {timeoutSeconds}초)");
+        }
 
         var startTime = DateTime.Now;
         int retryCount = 0;
@@ -483,7 +456,9 @@ class Program
             // 메시지 확인
             foreach (var (updateId, text) in updates)
             {
-                if (text.Contains(pattern))
+                // 패턴이 없으면 첫 번째 새 메시지 반환
+                // 패턴이 있으면 패턴 매칭
+                if (string.IsNullOrEmpty(pattern) || text.Contains(pattern))
                 {
                     Console.WriteLine($"응답 메시지 수신: {text}");
                     SaveOffset(offsetPath, updateId + 1);
