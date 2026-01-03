@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2026-01-03
+
+### Changed
+- 메시지 전송 성공 시 최신 update_id로 offset 자동 갱신
+- `--wait` 실행 시 전송한 메시지 이후의 응답만 수신하도록 개선
+
 ## [0.3.0] - 2026-01-03
 
 ### Added

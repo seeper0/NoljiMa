@@ -2,7 +2,7 @@
 ; 한국어 지원 포함
 
 #define MyAppName "NoljiMa"
-#define MyAppVersion "0.3.0"
+#define MyAppVersion "0.3.1"
 #define MyAppPublisher "seeper0"
 #define MyAppURL "https://github.com/seeper0/NoljiMa"
 #define MyAppExeName "NoljiMa.exe"
