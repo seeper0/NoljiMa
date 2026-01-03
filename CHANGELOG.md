@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-01-03
+
+### Added
+- `--help`, `-h` 옵션으로 사용법 확인 가능
+- `--clear-offset` 옵션으로 offset.txt 초기화 가능
+- Global Mutex로 병렬 실행 자동 방지 (시스템 전체에서 단일 인스턴스만 실행)
+- InitialSetup에 Telegram Bot 설정 가이드 링크 추가
+- README에 핵심 워크플로우 섹션 추가 (Claude와 소통 패턴)
+- README에 명령어 옵션 섹션 추가
+- README에 병렬 실행 자동 방지 설명 추가
+- 릴리스 스킬에 README.md 검증 및 갱신 프로세스 추가
+
+### Changed
+- **Breaking Change**: 메시지 전송 시 `[ID]` 형식 필수 요구사항 제거 (모든 텍스트 전송 가능)
+- `--wait` 패턴을 선택적으로 변경 (패턴 없으면 첫 번째 새 메시지 자동 수신)
+- offset 기반으로 새 메시지 자동 구분
+- `PrintHelp()` 함수로 help 메시지 중복 코드 제거
+- README 전면 개편 (사용법 간소화, 워크플로우 명확화)
+
 ## [0.2.2] - 2026-01-01
 
 ### Fixed
