@@ -120,6 +120,7 @@ class Program
 
         if (success)
         {
+            UpdateOffsetToLatest(botToken);
             Console.WriteLine("전송 성공");
             Environment.Exit(0);
         }
@@ -430,6 +431,18 @@ class Program
         {
             error = $"알 수 없는 오류: {ex.Message}";
             return updates;
+        }
+    }
+
+    static void UpdateOffsetToLatest(string botToken)
+    {
+        var offsetPath = GetOffsetPath();
+        var updates = GetTelegramUpdates(botToken, 0, out string error);
+
+        if (string.IsNullOrEmpty(error) && updates.Count > 0)
+        {
+            var latestUpdateId = updates[updates.Count - 1].UpdateId;
+            SaveOffset(offsetPath, latestUpdateId + 1);
         }
     }
 
