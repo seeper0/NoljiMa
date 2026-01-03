@@ -3,7 +3,36 @@ using System.Text.Json;
 
 class Program
 {
+    static Mutex? mutex = null;
+
     static void Main(string[] args)
+    {
+        // Global Mutex로 병렬 실행 방지
+        bool createdNew;
+        mutex = new Mutex(true, "Global\\NoljiMa", out createdNew);
+
+        if (!createdNew)
+        {
+            Console.WriteLine("오류: NoljiMa가 이미 실행 중입니다.");
+            Console.WriteLine("병렬 실행이 금지되어 있습니다.");
+            Console.WriteLine();
+            Console.WriteLine("다른 터미널이나 프로세스에서 NoljiMa가 실행 중인지 확인하세요.");
+            Environment.Exit(1);
+            return;
+        }
+
+        try
+        {
+            RunApplication(args);
+        }
+        finally
+        {
+            mutex?.ReleaseMutex();
+            mutex?.Dispose();
+        }
+    }
+
+    static void RunApplication(string[] args)
     {
         var iniPath = GetIniPath();
         var (botToken, chatId) = LoadConfig(iniPath);
@@ -110,7 +139,7 @@ class Program
         Console.WriteLine("  NoljiMa --wait --timeout 600        # 타임아웃 지정 (초)");
         Console.WriteLine("  NoljiMa --clear-offset              # offset 클리어 (메시지 읽기 위치 초기화)");
         Console.WriteLine();
-        Console.WriteLine("⚠️  주의: NoljiMa는 병렬 실행하지 마세요 (특히 --wait 모드)");
+        Console.WriteLine("ℹ️  참고: 병렬 실행은 Global Mutex로 자동 방지됩니다");
     }
 
     static void ClearOffset()
