@@ -16,13 +16,17 @@ class Program
             return;
         }
 
+        // --help 옵션 확인
+        if (args.Length > 0 && (args[0] == "--help" || args[0] == "-h"))
+        {
+            PrintHelp();
+            return;
+        }
+
         // 인자 없음 → 사용법 출력
         if (args.Length == 0)
         {
-            Console.WriteLine("사용법:");
-            Console.WriteLine("  NoljiMa \"[ID] 메시지\"               # 메시지 전송");
-            Console.WriteLine("  NoljiMa --wait \"[키]\"               # 응답 대기 (기본 24시간, 5분~1시간 간격)");
-            Console.WriteLine("  NoljiMa --wait \"[키]\" --timeout 600  # 응답 대기 (타임아웃 지정, 5분 간격)");
+            PrintHelp();
             return;
         }
 
@@ -35,10 +39,7 @@ class Program
             {
                 Console.WriteLine("오류: --wait 다음에 패턴을 지정해야 합니다.");
                 Console.WriteLine();
-                Console.WriteLine("사용법:");
-                Console.WriteLine("  NoljiMa \"[ID] 메시지\"               # 메시지 전송");
-                Console.WriteLine("  NoljiMa --wait \"[키]\"               # 응답 대기 (기본 24시간, 5분~1시간 간격)");
-                Console.WriteLine("  NoljiMa --wait \"[키]\" --timeout 600  # 응답 대기 (타임아웃 지정, 5분 간격)");
+                PrintHelp();
                 Environment.Exit(1);
                 return;
             }
@@ -96,10 +97,7 @@ class Program
         {
             Console.WriteLine($"오류: 알 수 없는 옵션입니다: {args[0]}");
             Console.WriteLine();
-            Console.WriteLine("사용법:");
-            Console.WriteLine("  NoljiMa \"[ID] 메시지\"               # 메시지 전송");
-            Console.WriteLine("  NoljiMa --wait \"[키]\"               # 응답 대기 (기본 24시간, 5분~1시간 간격)");
-            Console.WriteLine("  NoljiMa --wait \"[키]\" --timeout 600  # 응답 대기 (타임아웃 지정, 5분 간격)");
+            PrintHelp();
             Environment.Exit(1);
             return;
         }
@@ -131,6 +129,14 @@ class Program
             Console.WriteLine($"전송 실패: {error}");
             Environment.Exit(1);
         }
+    }
+
+    static void PrintHelp()
+    {
+        Console.WriteLine("사용법:");
+        Console.WriteLine("  NoljiMa \"[ID] 메시지\"               # 메시지 전송");
+        Console.WriteLine("  NoljiMa --wait \"[키]\"               # 응답 대기 (기본 24시간, 5분~1시간 간격)");
+        Console.WriteLine("  NoljiMa --wait \"[키]\" --timeout 600  # 응답 대기 (타임아웃 지정, 5분 간격)");
     }
 
     static string GetIniPath()
@@ -491,6 +497,11 @@ class Program
 
     static void InitialSetup(string iniPath)
     {
+        // NOTE: 아래 링크는 README.md의 "## Telegram Bot 설정" 섹션을 가리킵니다.
+        // README.md에서 해당 섹션의 제목이나 구조가 변경되면 이 링크도 함께 업데이트해야 합니다.
+        Console.WriteLine();
+        Console.WriteLine("Bot Token과 Chat ID 확인:");
+        Console.WriteLine("https://github.com/seeper0/NoljiMa#telegram-bot-%EC%84%A4%EC%A0%95");
         Console.WriteLine();
         Console.Write("Telegram Bot Token을 입력하세요: ");
         string? botToken = Console.ReadLine()?.Trim();

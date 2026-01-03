@@ -156,6 +156,9 @@ dotnet build -c Release && NoljiMa "[빌드] 빌드 성공" || NoljiMa "[빌드]
 
 ## Telegram Bot 설정
 
+<!-- NOTE: 이 섹션의 제목과 구조는 Program.cs의 InitialSetup 함수에서 참조됩니다. -->
+<!-- 제목이나 구조 변경 시 Program.cs:500-505의 링크도 함께 업데이트해야 합니다. -->
+
 ### 1. Bot 생성
 1. Telegram에서 [@BotFather](https://t.me/botfather) 검색
 2. `/newbot` 명령 입력
