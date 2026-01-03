@@ -10,16 +10,31 @@ Telegram으로 알림을 전송하는 간단한 CLI 도구입니다. 작업 완�
 
 ### 핵심 기능
 - **Telegram 메시지 전송**: Bot API를 통한 간편한 알림
-- **INI 설정 관리**: 실행 파일과 같은 경로의 `NoljiMa.ini`로 관리
+- **쌍방향 소통**: 텔레그램 응답 대기 기능 (`--wait` 파라미터)
+- **메시지 형식 검증**: `[ID] 내용` 형식으로 메시지 추적 및 식별
+- **INI 설정 관리**: `%LocalAppData%\NoljiMa\config.ini`로 설정 관리
 - **초기 설정 모드**: 처음 실행 시 대화형으로 Bot Token과 Chat ID 입력
 - **자동 테스트**: 설정 완료 시 테스트 메시지 전송으로 검증
 - **명령줄 통합**: PATH 등록 시 어디서든 `NoljiMa "메시지"` 실행 가능
 
+### 메시지 형식
+모든 메시지는 `[ID] 내용` 형식을 사용합니다.
+
+```
+[작업#001] 빌드 완료, 확인 필요
+[1234] 빌드 실패 확인 요청
+[노티#999] 배포 준비 완료
+```
+
+- **ID**: 고유 식별자 (`[` `]`로 감싸기)
+- **내용**: 전달할 메시지 (ID 뒤에 공백 후 작성)
+
 ### 에러 처리
-- 네트워크 오류 감지
+- 네트워크 오류 감지 및 자동 재시도 (최대 3회)
 - 잘못된 Bot Token 검증
 - 잘못된 Chat ID 검증
 - 설정 파일 오류 처리
+- 메시지 형식 검증
 
 ## 기술 스택
 
@@ -72,19 +87,44 @@ NoljiMa
 1. Telegram Bot Token 입력 ([@BotFather](https://t.me/botfather)에서 발급)
 2. Chat ID 입력 (개인 또는 그룹)
 3. 테스트 메시지 전송으로 검증
-4. 성공 시 `NoljiMa.ini` 자동 생성
+4. 성공 시 `%LocalAppData%\NoljiMa\config.ini` 자동 생성
 
-### 메시지 전송
+### 기본 사용 (메시지 전송)
 
 ```bash
 # PATH 등록 전
-NoljiMa.exe "빌드 완료"
-NoljiMa.exe "배포 성공!"
+NoljiMa.exe "[작업#001] 빌드 완료"
+NoljiMa.exe "[1234] Spine 최적화 방법 질문"
 
 # PATH 등록 후 (어디서든 실행 가능)
-NoljiMa "빌드 완료"
-NoljiMa "테스트 통과"
+NoljiMa "[작업#001] 빌드 완료"
+NoljiMa "[1234] Spine 최적화 방법 질문"
 ```
+
+### 응답 대기 모드
+
+텔레그램에서 사용자 응답을 기다릴 수 있습니다:
+
+```bash
+# 특정 ID를 포함한 메시지 대기 (기본 타임아웃: 24시간)
+NoljiMa --wait "[작업#001]"
+
+# 타임아웃 지정 (초 단위)
+NoljiMa --wait "[작업#001]" --timeout 600
+
+# 워크플로우 예시
+NoljiMa "[작업#001] 코드 리뷰 필요"    # 1. 알림 전송
+NoljiMa --wait "[작업#001]"            # 2. 응답 대기 (폴링 시작)
+# 사용자가 텔레그램에서 "[작업#001] 확인완료" 입력
+# → NoljiMa 종료 (exit 0)
+```
+
+### Exit Code
+
+| Code | 의미 | 설명 |
+|------|------|------|
+| 0 | 성공 | 메시지 전송 성공 또는 대기 중 응답 발견 |
+| 1 | 실패 | 전송 실패, 타임아웃, 또는 설정 오류 |
 
 ### 빌드 스크립트에 통합
 
@@ -93,9 +133,9 @@ NoljiMa "테스트 통과"
 @echo off
 dotnet build -c Release
 if %ERRORLEVEL% EQU 0 (
-    NoljiMa "빌드 성공"
+    NoljiMa "[빌드] 빌드 성공"
 ) else (
-    NoljiMa "빌드 실패"
+    NoljiMa "[빌드] 빌드 실패"
 )
 ```
 
@@ -103,15 +143,15 @@ if %ERRORLEVEL% EQU 0 (
 ```powershell
 dotnet build -c Release
 if ($LASTEXITCODE -eq 0) {
-    NoljiMa "빌드 성공"
+    NoljiMa "[빌드] 빌드 성공"
 } else {
-    NoljiMa "빌드 실패"
+    NoljiMa "[빌드] 빌드 실패"
 }
 ```
 
 #### Bash (WSL/Git Bash)
 ```bash
-dotnet build -c Release && NoljiMa "빌드 성공" || NoljiMa "빌드 실패"
+dotnet build -c Release && NoljiMa "[빌드] 빌드 성공" || NoljiMa "[빌드] 빌드 실패"
 ```
 
 ## Telegram Bot 설정
@@ -136,18 +176,53 @@ dotnet build -c Release && NoljiMa "빌드 성공" || NoljiMa "빌드 실패"
 
 ## 설정 파일
 
-### 위치
-`NoljiMa.exe`와 같은 폴더의 `NoljiMa.ini`
+### 1. config.ini (필수)
 
-### 형식
+#### 위치
+```
+%LocalAppData%\NoljiMa\config.ini
+```
+예: `C:\Users\YourName\AppData\Local\NoljiMa\config.ini`
+
+#### 형식
 ```ini
 [Telegram]
 BotToken=123456789:ABCdefGHIjklMNOpqrsTUVwxyz
 ChatId=987654321
 ```
 
-### 재설정
-`NoljiMa.ini` 파일을 삭제하고 NoljiMa를 다시 실행하면 초기 설정 모드로 진입합니다.
+#### 설정 항목
+
+| 키 | 설명 | 예시 |
+|----|------|------|
+| BotToken | Telegram Bot API 토큰 (@BotFather에서 발급) | 123456789:ABCdefGHI... |
+| ChatId | 메시지 받을 채팅 ID (개인 또는 그룹) | 987654321 |
+
+#### 재설정
+`config.ini` 파일을 삭제하고 NoljiMa를 다시 실행하면 초기 설정 모드로 진입합니다.
+
+### 2. offset.txt (자동 생성)
+
+#### 위치
+```
+%LocalAppData%\NoljiMa\offset.txt
+```
+
+#### 용도
+- 메시지 대기 모드(`--wait`) 사용 시 자동 생성
+- 마지막으로 읽은 Telegram update_id 저장
+- 중복 메시지 처리 방지
+
+#### 형식
+```
+12345678
+```
+(단일 정수, 마지막 update_id)
+
+#### 관리
+- 자동 생성/업데이트: 메시지 수신 시 자동 저장
+- 수동 삭제: 처음부터 다시 읽고 싶을 때 삭제 가능
+- 파일 없음: offset=0으로 시작 (모든 메시지 읽기)
 
 ## 빌드
 
@@ -166,9 +241,11 @@ dotnet publish -c Release -r win-x64 --self-contained false -o ./publish
 
 ## 프로젝트 구조
 
+### 소스 코드
+
 ```
 NoljiMa/
-├── Program.cs             # 모든 로직 포함 (단일 파일, ~200줄)
+├── Program.cs             # 모든 로직 포함 (단일 파일, ~530줄)
 ├── NoljiMa.csproj        # 프로젝트 파일
 ├── NoljiMa.sln           # 솔루션 파일
 ├── installer.iss         # Inno Setup 스크립트
@@ -176,6 +253,14 @@ NoljiMa/
 ├── CLAUDE.md             # 프로젝트 규칙
 └── docs/
     └── NoljiMa.md        # 상세 명세서
+```
+
+### 실행 시 생성 파일
+
+```
+%LocalAppData%\NoljiMa/
+├── config.ini            # Telegram 설정 (BotToken, ChatId)
+└── offset.txt            # 마지막 읽은 update_id (메시지 대기 모드 사용 시)
 ```
 
 ## 라이선스
