@@ -119,6 +119,30 @@ NoljiMa --wait "[작업#001]"            # 2. 응답 대기 (폴링 시작)
 # → NoljiMa 종료 (exit 0)
 ```
 
+### 명령어 옵션
+
+#### 도움말 보기
+```bash
+# 사용법 확인
+NoljiMa --help
+NoljiMa -h
+```
+
+#### Offset 클리어
+메시지 대기 모드(`--wait`)에서 사용하는 읽기 위치를 초기화합니다. 이전에 읽은 메시지를 다시 처음부터 읽고 싶을 때 사용합니다.
+
+```bash
+# offset.txt 파일 삭제 (메시지 읽기 위치 초기화)
+NoljiMa --clear-offset
+```
+
+**사용 예시**:
+```bash
+# offset 클리어 후 처음부터 메시지 다시 읽기
+NoljiMa --clear-offset
+NoljiMa --wait "[작업#001]"  # 모든 메시지를 처음부터 확인
+```
+
 ### Exit Code
 
 | Code | 의미 | 설명 |

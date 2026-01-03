@@ -184,10 +184,49 @@ Removed (제거된 기능):
 - CHANGELOG.md 버전
 - 모두 동일한지 확인
 
-#### README.md 검증
-- 빌드 명령어가 실제 사용과 일치하는지
-- 기능 설명이 최신인지
-- Telegram Bot 설정 가이드 확인
+#### README.md 검증 및 갱신
+
+**중요**: 릴리스 전 README.md가 최신 기능을 반영하는지 확인하고, 필요시 갱신합니다.
+
+**검증 항목**:
+1. **명령어 옵션 확인**
+   - Program.cs의 PrintHelp() 함수와 README.md의 "명령어 옵션" 섹션 비교
+   - 누락된 옵션이 있는지 확인 (예: --help, --clear-offset, --wait, --timeout)
+
+2. **기능 설명 확인**
+   - Program.cs에 구현된 모든 기능이 README.md에 설명되어 있는지
+   - offset.txt 파일 설명 (자동 생성 섹션)
+   - 메시지 형식 검증 규칙
+
+3. **사용 예시 확인**
+   - 예제 명령어가 실제로 동작하는지 검증
+   - Exit Code 테이블 정확성
+
+4. **링크 검증**
+   - GitHub 저장소 링크 (예: Releases 페이지)
+   - 외부 링크 (BotFather, userinfobot)
+   - README.md 내부 참조 링크
+
+**갱신 프로세스**:
+```bash
+# 1. PrintHelp 함수 내용 읽기
+grep -A 10 "static void PrintHelp" Program.cs
+
+# 2. README.md의 "명령어 옵션" 섹션과 비교
+grep -A 20 "### 명령어 옵션" README.md
+
+# 3. 불일치 발견 시 README.md 업데이트
+# - 누락된 옵션 추가
+# - 설명 보강
+# - 예제 코드 업데이트
+```
+
+**체크리스트**:
+- [ ] PrintHelp() 내용이 README.md에 모두 반영되었는지
+- [ ] 새로 추가된 기능이 "사용법" 섹션에 설명되었는지
+- [ ] offset.txt 설명이 "설정 파일" 섹션에 있는지
+- [ ] 빌드 명령어가 실제 사용과 일치하는지
+- [ ] Telegram Bot 설정 가이드가 최신인지
 
 #### CLAUDE.md 검증
 - 문서 규칙 준수 확인
