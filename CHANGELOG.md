@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.3] - 2026-01-04
+
+### Added
+- --wait 패턴 검증 (반드시 []로 감싸야 함)
+
+### Changed
+- README.md 패턴 예시 및 설명 업데이트
+- 패턴 오류 메시지 개선
+
 ## [0.3.2] - 2026-01-04
 
 ### Added
