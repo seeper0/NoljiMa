@@ -88,6 +88,16 @@ class Program
             if (waitIndex + 1 < args.Length && !args[waitIndex + 1].StartsWith("--"))
             {
                 pattern = args[waitIndex + 1];
+
+                // 패턴은 반드시 []로 감싸야 함
+                if (!pattern.StartsWith("[") || !pattern.EndsWith("]"))
+                {
+                    Console.WriteLine("오류: --wait 패턴은 반드시 '[]'로 감싸야 합니다.");
+                    Console.WriteLine("예시: --wait \"[작업#001]\"");
+                    Environment.Exit(1);
+                    return;
+                }
+
                 // 메시지 앞에 패턴 추가
                 message = $"{pattern} {message}";
             }
@@ -133,6 +143,15 @@ class Program
             if (waitIndex + 1 < args.Length && !args[waitIndex + 1].StartsWith("--"))
             {
                 pattern = args[waitIndex + 1];
+
+                // 패턴은 반드시 []로 감싸야 함
+                if (!pattern.StartsWith("[") || !pattern.EndsWith("]"))
+                {
+                    Console.WriteLine("오류: --wait 패턴은 반드시 '[]'로 감싸야 합니다.");
+                    Console.WriteLine("예시: --wait \"[작업#001]\"");
+                    Environment.Exit(1);
+                    return;
+                }
             }
 
             // --timeout 파라미터 확인 (기본값 24시간 = 86400초)
