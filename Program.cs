@@ -66,8 +66,64 @@ class Program
             return;
         }
 
-        // --wait 파라미터 확인 (응답 대기 모드)
+        // --wait 파라미터 확인
         int waitIndex = Array.IndexOf(args, "--wait");
+
+        // 메시지 전송 + --wait 조합 체크
+        if (!args[0].StartsWith("--") && waitIndex >= 0)
+        {
+            // 메시지가 있고 --wait도 있음 → 메시지 전송 후 대기
+            string message = args[0];
+
+            // 빈 메시지 검증
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                Console.WriteLine("오류: 메시지가 비어있습니다.");
+                Environment.Exit(1);
+                return;
+            }
+
+            // --wait 다음에 패턴이 있고, 그것이 다른 옵션이 아니면 패턴으로 사용
+            string? pattern = null;
+            if (waitIndex + 1 < args.Length && !args[waitIndex + 1].StartsWith("--"))
+            {
+                pattern = args[waitIndex + 1];
+                // 메시지 앞에 패턴 추가
+                message = $"{pattern} {message}";
+            }
+
+            // 메시지 전송
+            bool success = SendTelegramMessage(botToken, chatId, message, out string error);
+
+            if (!success)
+            {
+                Console.WriteLine($"전송 실패: {error}");
+                Environment.Exit(1);
+                return;
+            }
+
+            Console.WriteLine("전송 성공");
+
+            // offset 최신화
+            UpdateOffsetToLatest(botToken);
+
+            // --timeout 파라미터 확인 (기본값 24시간 = 86400초)
+            int timeout = 86400;
+            int timeoutIndex = Array.IndexOf(args, "--timeout");
+            if (timeoutIndex >= 0 && timeoutIndex + 1 < args.Length)
+            {
+                if (int.TryParse(args[timeoutIndex + 1], out int parsedTimeout))
+                {
+                    timeout = parsedTimeout;
+                }
+            }
+
+            // 대기 모드 실행
+            int exitCode = WaitForMessage(botToken, pattern, timeout);
+            Environment.Exit(exitCode);
+        }
+
+        // --wait 단독 사용 (메시지 전송 없이 대기만)
         if (waitIndex >= 0)
         {
             // 패턴 확인 (선택적)
@@ -106,19 +162,19 @@ class Program
         }
 
         // 메시지 전송 모드
-        string message = args[0];
+        string messageOnly = args[0];
 
         // 빈 메시지 검증
-        if (string.IsNullOrWhiteSpace(message))
+        if (string.IsNullOrWhiteSpace(messageOnly))
         {
             Console.WriteLine("오류: 메시지가 비어있습니다.");
             Environment.Exit(1);
             return;
         }
 
-        bool success = SendTelegramMessage(botToken, chatId, message, out string error);
+        bool successOnly = SendTelegramMessage(botToken, chatId, messageOnly, out string errorOnly);
 
-        if (success)
+        if (successOnly)
         {
             UpdateOffsetToLatest(botToken);
             Console.WriteLine("전송 성공");
@@ -126,7 +182,7 @@ class Program
         }
         else
         {
-            Console.WriteLine($"전송 실패: {error}");
+            Console.WriteLine($"전송 실패: {errorOnly}");
             Environment.Exit(1);
         }
     }
@@ -134,11 +190,13 @@ class Program
     static void PrintHelp()
     {
         Console.WriteLine("사용법:");
-        Console.WriteLine("  NoljiMa \"메시지\"                    # 메시지 전송");
-        Console.WriteLine("  NoljiMa --wait                      # 응답 대기 (다음 새 메시지)");
-        Console.WriteLine("  NoljiMa --wait \"패턴\"               # 패턴 포함 메시지 대기");
-        Console.WriteLine("  NoljiMa --wait --timeout 600        # 타임아웃 지정 (초)");
-        Console.WriteLine("  NoljiMa --clear-offset              # offset 클리어 (메시지 읽기 위치 초기화)");
+        Console.WriteLine("  NoljiMa \"메시지\"                         # 메시지 전송");
+        Console.WriteLine("  NoljiMa \"메시지\" --wait                  # 메시지 전송 후 응답 대기");
+        Console.WriteLine("  NoljiMa \"메시지\" --wait \"[패턴]\"        # \"[패턴] 메시지\" 전송 후 패턴 응답 대기");
+        Console.WriteLine("  NoljiMa \"메시지\" --wait --timeout 600    # 타임아웃 지정 (초)");
+        Console.WriteLine("  NoljiMa --wait                           # 응답 대기만 (다음 새 메시지)");
+        Console.WriteLine("  NoljiMa --wait \"[패턴]\"                 # 패턴 포함 메시지 대기만");
+        Console.WriteLine("  NoljiMa --clear-offset                   # offset 클리어 (메시지 읽기 위치 초기화)");
         Console.WriteLine();
         Console.WriteLine("ℹ️  참고: 병렬 실행은 Global Mutex로 자동 방지됩니다");
     }
