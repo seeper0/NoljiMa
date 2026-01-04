@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] - 2026-01-04
+
+### Added
+- 메시지 전송과 동시에 응답 대기하는 `--wait` 조합 기능
+- `--wait "[패턴]"` 사용 시 메시지 앞에 패턴 자동 붙이기
+
+### Changed
+- help 메시지에 새로운 사용법 추가
+
+### Documentation
+- CLAUDE.md에 세션 시작 시 git 동기화 규칙 추가
+- CLAUDE.md에 스킬 자동 실행 규칙 추가
+
 ## [0.3.1] - 2026-01-03
 
 ### Changed
