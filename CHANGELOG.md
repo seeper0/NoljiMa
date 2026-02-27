@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.4] - 2026-02-27
+
+### Fixed
+- 메시지 전송 후 "전송 성공" 출력이 느린 문제 수정
+  - `UpdateOffsetToLatest()`에서 Long Polling(30초) 대기하던 것을 즉시 응답(pollingTimeout=0)으로 변경
+
+### Changed
+- `GetTelegramUpdates()`에 `pollingTimeout` 파라미터 추가 (기본값 30)
+- `docs/NoljiMa.md` 타임아웃 정책 문서화
+
 ## [0.3.3] - 2026-01-04
 
 ### Added

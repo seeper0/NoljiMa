@@ -434,7 +434,7 @@ class Program
         }
     }
 
-    static List<(long UpdateId, string Text)> GetTelegramUpdates(string botToken, long offset, out string error)
+    static List<(long UpdateId, string Text)> GetTelegramUpdates(string botToken, long offset, out string error, int pollingTimeout = 30)
     {
         error = "";
         var updates = new List<(long, string)>();
@@ -442,9 +442,9 @@ class Program
         try
         {
             using var httpClient = new HttpClient();
-            httpClient.Timeout = TimeSpan.FromSeconds(45); // Long Polling 30초 + 여유 15초
+            httpClient.Timeout = TimeSpan.FromSeconds(pollingTimeout + 15);
 
-            var url = $"https://api.telegram.org/bot{botToken}/getUpdates?offset={offset}&timeout=30";
+            var url = $"https://api.telegram.org/bot{botToken}/getUpdates?offset={offset}&timeout={pollingTimeout}";
 
             var response = httpClient.GetAsync(url).Result;
             var responseBody = response.Content.ReadAsStringAsync().Result;
@@ -511,10 +511,12 @@ class Program
         }
     }
 
+    // 현재까지의 메시지를 읽음 처리하여, 이후 --wait 실행 시 새 메시지만 수신되도록 함
+    // pollingTimeout: 0 → Long Polling 없이 즉시 응답 (offset 갱신 목적이므로 대기 불필요)
     static void UpdateOffsetToLatest(string botToken)
     {
         var offsetPath = GetOffsetPath();
-        var updates = GetTelegramUpdates(botToken, 0, out string error);
+        var updates = GetTelegramUpdates(botToken, 0, out string error, pollingTimeout: 0);
 
         if (string.IsNullOrEmpty(error) && updates.Count > 0)
         {

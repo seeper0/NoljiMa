@@ -246,7 +246,9 @@ GET https://api.telegram.org/bot{BotToken}/getUpdates?offset={update_id}&timeout
 ### 구현 세부사항
 - **HttpClient** 사용 (외부 패키지 불필요)
 - **동기 방식** 구현 (`.Result` 사용)
-- **타임아웃**: sendMessage 10초, getUpdates 35초 (Long Polling 30초 + 여유 5초)
+- **타임아웃**: sendMessage 10초, getUpdates `pollingTimeout + 15`초 (Long Polling 대기 + 여유)
+  - `--wait` 폴링: pollingTimeout=30 (기본값)
+  - offset 갱신(`UpdateOffsetToLatest`): pollingTimeout=0 (즉시 응답, 대기 불필요)
 - **offset 저장**: `%LocalAppData%\NoljiMa\offset.txt` (단일 숫자)
 
 ## 에러 처리
