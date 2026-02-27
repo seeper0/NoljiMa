@@ -145,7 +145,7 @@ NoljiMa "코드 리뷰 필요" --wait "[리뷰#001]"  # 1. 전송 + 응답 대�
 
 #### 도움말 보기
 ```bash
-# 사용법 확인
+# 사용법 및 버전 확인
 NoljiMa --help
 NoljiMa -h
 ```
@@ -316,7 +316,7 @@ dotnet publish -c Release -r win-x64 --self-contained false -o ./publish
 
 ```
 NoljiMa/
-├── Program.cs             # 모든 로직 포함 (단일 파일, ~530줄)
+├── Program.cs             # 모든 로직 포함 (단일 파일, ~670줄)
 ├── NoljiMa.csproj        # 프로젝트 파일
 ├── NoljiMa.sln           # 솔루션 파일
 ├── installer.iss         # Inno Setup 스크립트

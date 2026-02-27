@@ -208,6 +208,9 @@ class Program
 
     static void PrintHelp()
     {
+        var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+        Console.WriteLine($"NoljiMa v{version!.Major}.{version.Minor}.{version.Build}");
+        Console.WriteLine();
         Console.WriteLine("사용법:");
         Console.WriteLine("  NoljiMa \"메시지\"                         # 메시지 전송");
         Console.WriteLine("  NoljiMa \"메시지\" --wait                  # 메시지 전송 후 응답 대기");
